@@ -21,6 +21,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('') 
   const [filteredInventory, setFilteredInventory] = useState([])
   const [searchResult, setSearchResult] = useState(null)
+  const [recipe, setRecipe] = useState('')  // New state to store generated recipe
+  const [loadingRecipe, setLoadingRecipe] = useState(false)
+  const isBrowser = () => typeof window !== "undefined";
 
   const updateInventory = async() => {
     const snapshot = query(collection(firestore, 'inventory'))
@@ -80,22 +83,70 @@ export default function Home() {
       setSearchResult(0);
     }
   }
+  const generateRecipes = async () => {
+    if (typeof window !== "undefined") {
+      const availableIngredients = inventory.filter(item => item.quantity > 0).map(item => item.name);
+      setLoadingRecipe(true); 
+      try {
+        const response = await fetch('/api/chat', {  // Call the backend API to generate recipes
+          method: 'POST',
+          headers: {
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ingredients: availableIngredients }),  // Send ingredients list
+        });
+  
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let result = '';
+  
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+          result += decoder.decode(value);
+        }
+        const cleanedRecipe = result.replace(/#+/g, '').trim();
+        setRecipe(cleanedRecipe);  // Set the generated recipe
+  
+      } catch (error) {
+        console.error('Error generating recipe:', error);
+        setRecipe('Failed to generate recipe. Please try again.');
+      } finally {
+        setLoadingRecipe(false);  // Stop loading state
+      }
+    }
+  };
 
   return (
-    <Box width="100vw" height="100vh" display="flex" flexDirection="column" justifyContent="center" alignItems="center" gap={2}>
+    <Box width="100vw" height="100vh" minHeight="100vh" overflow={'auto'} display="flex" flexDirection="column" justifyContent="center" alignItems="center" gap={2} bgcolor="#D3DA9A" >
+      <Box flex="0 0 auto" padding={2} bgcolor="#FFFFFF" borderBottom="1px solid #ddd" display="flex" flexDirection="column" alignItems="center" gap={2} boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)">
       <Modal open={open} onClose={handleClose}>
-        <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} width={(400)} bgcolor="white" border="2px solid #000" boxSahdow={24} p={4} display="flex" flexDirection="column" gap={3}>
-          <Typography variant="h6">Add Item</Typography>
+        <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} width={(400)} bgcolor="FFFFFF" border="2px solid #AAB071" boxShadow={24} p={4} display="flex" flexDirection="column" gap={3}>
+          <Typography variant="h6" color="#3D3D3D" fontWeight="bold">Add Item</Typography>
           <Stack width="100%" direction="row" spacing={2}>
             <TextField variant='outlined' fullWidth value={itemName} onChange={(e) => {setItemName(e.target.value)}}></TextField>
-            <Button variant="outlined" onClick={() => { 
+            <Button variant="outlined" sx={{
+                bgcolor: "#3D3D3D", 
+                color: "#FFFFFF",
+                '&:hover': {
+                  bgcolor: "#555555", 
+                },
+              }} onClick={() => { 
               addItem(itemName) 
               setItemName('') 
               handleClose()}}>Add</Button>
           </Stack>
         </Box> 
       </Modal>
-      <Button variant="contained" onClick={() => {
+      <Button variant="contained" sx={{
+          bgcolor: "#3D3D3D", 
+          color: "#FFFFFF",
+          '&:hover': {
+            bgcolor: "#555555",  // Button hover effect
+          },
+        }} onClick={() => {
         handleOpen()
       }}>Add New Item</Button>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
@@ -106,16 +157,24 @@ export default function Home() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Button variant="contained" onClick={handleSearch}>Search</Button>
+        <Button variant="contained"
+          sx={{
+            bgcolor: "#3D3D3D", 
+            color: "#FFFFFF",
+            '&:hover': {
+              bgcolor: "#555555",
+            },
+          }} onClick={handleSearch}>Search</Button>
       </Stack>
       {searchResult !== null && (
-        <Typography variant="h6" color="#333">
+        <Typography variant="h6" color="#2D2D2D">
           Quantity: {searchResult}
         </Typography>
       )}
+      </Box>
       <Box border="1px solid #333">
-        <Box width="800px" height="100px" bgcolor="#ADD8E6" display="flex" alignItems="center" justifyContent="center">
-          <Typography variant='h2' color="#333" textAlign="center">Inventory Items</Typography>
+        <Box width="800px" height="100px" bgcolor="#AAB071" display="flex" alignItems="center" justifyContent="center">
+          <Typography variant='h2' color="#FFFFFF" textAlign="center">Inventory Items</Typography>
         </Box>
       <Stack width="800px" height="300px" spacing={2} overflow={'auto'} >
        {inventory.map(({name, quantity}) => (
@@ -126,20 +185,33 @@ export default function Home() {
             display={'flex'}
             justifyContent={'space-between'}
             alignItems={'center'}
-            bgcolor={'#f0f0f0'}
+            bgcolor={'#FFFFFF'}
+            boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
             paddingX={5}
           >
-            <Typography variant={'h3'} color={'#313F57'} textAlign={'center'}>
+            <Typography variant={'h3'} color="#2D2D2D" textAlign={'center'}>
               {name.charAt(0).toUpperCase() + name.slice(1)}
             </Typography>
-            <Typography variant={'h3'} color={'#313F57'} textAlign={'center'}>
+            <Typography variant={'h3'} color="#2D2D2D" textAlign={'center'}>
               Quantity: {quantity}
             </Typography>
             <Stack direction="row" spacing={2}>
-              <Button variant="contained" onClick={() => addItem(name)}>
+              <Button variant="contained" sx={{
+                    bgcolor: "#3D3D3D", 
+                    color: "#FFFFFF",
+                    '&:hover': {
+                      bgcolor: "#555555",
+                    },
+                  }} onClick={() => addItem(name)}>
                 Add
               </Button>
-              <Button variant="contained" onClick={() => removeItem(name)}>
+              <Button variant="contained" sx={{
+                    bgcolor: "#3D3D3D", 
+                    color: "#FFFFFF",
+                    '&:hover': {
+                      bgcolor: "#555555",
+                    },
+                  }} onClick={() => removeItem(name)}>
                 Remove
               </Button>
             </Stack>
@@ -147,6 +219,22 @@ export default function Home() {
         ))}
       </Stack>
       </Box>
+         {/* Recipe Generator Section */}
+      <Button variant="contained" sx={{
+          bgcolor: "#3D3D3D", 
+          color: "#FFFFFF",
+          '&:hover': {
+            bgcolor: "#555555",
+          },
+        }} onClick={generateRecipes} disabled={loadingRecipe}>
+        {loadingRecipe ? 'Generating Recipe...' : 'Generate Recipe'}
+      </Button>
+      {recipe && (
+        <Box mt={4} p={2} bgcolor={'#FFFFFF'} width="800px" borderRadius={2} boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)">
+          <Typography variant="h4" color="#2D2D2D" textAlign="center">Generated Recipe</Typography>
+          <Typography variant="body1" color="#666666" mt={2}>{recipe}</Typography>
+        </Box>
+      )}
     </Box>
   )
 }
