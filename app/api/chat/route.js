@@ -6,7 +6,7 @@ const systemPrompt = "You are a recipe generation bot, which generates recipes w
 
 export async function POST(req) {
     const openai = new OpenAI({
-        apiKey: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY,
+        apiKey: process.env.OPENROUTER_API_KEY,
         baseURL: "https://openrouter.ai/api/v1",
     }) // Create a new instance of the OpenAI client
     const data = await req.json() // Parse the JSON body of the incoming request
