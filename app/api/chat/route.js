@@ -9,6 +9,9 @@ export async function POST(req) {
         apiKey: process.env.OPENROUTER_API_KEY,
         baseURL: "https://openrouter.ai/api/v1",
     }) // Create a new instance of the OpenAI client
+
+    console.log("API Key Loaded:", process.env.OPENROUTER_API_KEY ? "Yes" : "No");
+    
     const data = await req.json() // Parse the JSON body of the incoming request
     const { ingredients } = data;
     const prompt = `Here are the ingredients available: ${ingredients.join(", ")}. Generate a recipe based on some of these ingredients.`;
