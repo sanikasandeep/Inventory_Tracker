@@ -123,7 +123,7 @@ export default function Home() {
     <Box width="100vw" height="100vh" minHeight="100vh" overflow={'auto'} display="flex" flexDirection="column" justifyContent="center" alignItems="center" gap={2} bgcolor="#D3DA9A" >
       <Box flex="0 0 auto" padding={2} bgcolor="#FFFFFF" borderBottom="1px solid #ddd" display="flex" flexDirection="column" alignItems="center" gap={2} boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)">
       <Modal open={open} onClose={handleClose}>
-        <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} width={(400)} bgcolor="FFFFFF" border="2px solid #AAB071" boxShadow={24} p={4} display="flex" flexDirection="column" gap={3}>
+        <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} width={(400)} bgcolor="#FFFFFF" border="2px solid #AAB071" boxShadow={24} p={4} display="flex" flexDirection="column" gap={3}>
           <Typography variant="h6" color="#3D3D3D" fontWeight="bold">Add Item</Typography>
           <Stack width="100%" direction="row" spacing={2}>
             <TextField variant='outlined' fullWidth value={itemName} onChange={(e) => {setItemName(e.target.value)}}></TextField>
