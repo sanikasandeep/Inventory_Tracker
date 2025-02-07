@@ -176,7 +176,19 @@ export default function Home() {
         <Box width="800px" height="100px" bgcolor="#AAB071" display="flex" alignItems="center" justifyContent="center">
           <Typography variant='h2' color="#FFFFFF" textAlign="center">Inventory Items</Typography>
         </Box>
-      <Stack width="800px" height="300px" spacing={2} overflow={'auto'} >
+      <Stack width="800px" height="300px" spacing={2} overflow={'auto'} sx={{
+        '&::-webkit-scrollbar': {
+          width: '10px', 
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#FFFFFF', 
+          borderRadius: '10px',
+          border: '2px solid #AAB071',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#D3DA9A', 
+        },
+      }}>
        {inventory.map(({name, quantity}) => (
           <Box
             key={name}
